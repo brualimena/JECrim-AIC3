@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Ocorrencia {
+  ocorrencia_id   String      @id @default(uuid()) @db.Uuid 
+  date            DateTime    @default(now())
+  location        String
+  description     String
+  crime           String
+
+  TermoCircunstanciado TermoCircunstanciado?
+  Acusado Acusado[]
+  Vitima User[]   @relation("vitima")
+}
+
+model Acusado{ 
+  acusado_id      String    @id @default(uuid()) @db.Uuid
+  ocorrencia_id   String    @db.Uuid
+  nome            String?  
+  cpf             String?
+  telefone        String?
+  endereco        String?
+
+  Ocorrencia      Ocorrencia  @relation(fields: [ocorrencia_id], references: [ocorrencia_id])
+}
+
+model TermoCircunstanciado {
+  tc_id         String        @id @default(uuid()) @db.Uuid
+  ocorrencia_id String        @unique @db.Uuid
+  date_created  DateTime      @default(now())
+  status        String
+
+  Audiencias    Audiencia[]
+  Ocorrencia    Ocorrencia  @relation(fields: [ocorrencia_id], references: [ocorrencia_id])
+}
+
+model Audiencia {
+  audiencia_id String          @id @default(uuid()) @db.Uuid
+  tc_id        String          @unique @db.Uuid
+  date         String
+  hora         String
+  status       String
+
+  TermoCircunstanciado TermoCircunstanciado @relation(fields: [tc_id], references: [tc_id])
+  Notificacoes Notificacao[]
+  Participacoes Participacao[]
+}
+
+model Notificacao {
+  notificacao_id String       @id @default(uuid())  @db.Uuid
+  audiencia_id   String       @db.Uuid
+  type           String    // SMS ou Email
+  date           DateTime     @default(now())
+
+  Audiencia      Audiencia @relation(fields: [audiencia_id], references: [audiencia_id])
+}
+
+model User {
+  user_id     String          @id @default(uuid())  @db.Uuid
+  user        String
+  //Funcao      String       // Advogado, Juiz, Parte Envolvida uma tabela para cada
+  email       String          @unique
+  password    String
+  cpf         String          @unique
+  endereco    String
+  telefone    String?
+  data_nascimento String?
+  nome_pai    String?
+  nome_mae    String?
+
+  Participacoes Participacao[]
+  Vitima  Ocorrencia[]  @relation("vitima")
+}
+
+model Participacao {
+  audiencia_id String   @db.Uuid
+  user_id      String   @db.Uuid
+
+  Audiencia    Audiencia @relation(fields: [audiencia_id], references: [audiencia_id])
+  Usuario      User      @relation(fields: [user_id], references: [user_id])
+  @@id([audiencia_id, user_id])
+}
