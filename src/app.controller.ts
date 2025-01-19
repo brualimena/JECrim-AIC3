@@ -3,7 +3,7 @@ import { AppService } from './app.service';
 import { SignUpUserDto } from './dtos/siginup-user.dto';
 import { SignInUserDto } from './dtos/signin-user.dto';
 
-@Controller()
+@Controller('Auth')
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
